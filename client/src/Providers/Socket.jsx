@@ -7,7 +7,7 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
   const socket = useMemo(() => {
-    const connection = io("http://localhost:8000", {
+    const connection = io("https://webrtc-p2p-server.onrender.com", {
       transports: ["websocket"],
       reconnectionAttempts: 5,
       timeout: 10000,

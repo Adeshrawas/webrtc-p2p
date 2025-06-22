@@ -1,0 +1,59 @@
+.homepage-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to right, #0f0f0f, #1a1a1a);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.input-container {
+  padding: 0; /* Removed padding */
+  background: none; /* Removed background */
+  box-shadow: none; /* Removed box shadow */
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.homepage-container .input-container input,
+.homepage-container .input-container button {
+  font-size: 18px;
+  width: 100%;
+  padding: 14px 20px;
+  margin: 12px 0;
+  border-radius: 10px;
+  transition: all 0.2s ease-in-out;
+}
+
+.homepage-container .input-container input {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+}
+
+.homepage-container .input-container input::placeholder {
+  color: #aaa;
+}
+
+.homepage-container .input-container input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+}
+
+.homepage-container .input-container button {
+  background-color: #4a90e2;
+  color: white;
+  font-weight: bold;
+  border: none;
+  box-shadow: 0 4px 14px rgba(74, 144, 226, 0.3);
+  transition: background-color 0.3s, transform 0.2s;
+  cursor: pointer;
+}
+
+.homepage-container .input-container button:hover {
+  background-color: #357ab8;
+  transform: translateY(-2px);
+}

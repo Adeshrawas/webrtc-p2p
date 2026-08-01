@@ -88,6 +88,7 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(8000, () => {
-  console.log("🚀 Signaling server running on http://localhost:8000");
+const PORT = process.env.PORT || 8000;
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Signaling server running on http://localhost:${PORT}`);
 });

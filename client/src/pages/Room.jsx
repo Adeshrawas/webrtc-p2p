@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSocket } from "../Providers/Socket";
 import { usePeer } from "../Providers/peer";
 
 const RoomPage = () => {
+  const navigate = useNavigate();
   const { socket } = useSocket();
   const {
     peer,
@@ -115,7 +117,11 @@ const RoomPage = () => {
   return (
     <div className="room-page-container">
       <h1>Room Page</h1>
-      {remoteEmailId && <h3>Connected to: {remoteEmailId}</h3>}
+      {remoteEmailId ? (
+        <h3 style={{ color: "#4caf50" }}>Connected to: {remoteEmailId}</h3>
+      ) : (
+        <h3 style={{ color: "#ff9800" }}>Waiting for someone to join...</h3>
+      )}
 
       <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
         <div>
@@ -138,6 +144,22 @@ const RoomPage = () => {
           />
         </div>
       </div>
+
+      <button
+        onClick={() => navigate("/")}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          borderRadius: "8px",
+          backgroundColor: "#e53935",
+          color: "#fff",
+          border: "none",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Leave Room
+      </button>
     </div>
   );
 };

@@ -9,7 +9,8 @@ const Homepage = () => {
   const [email, setEmail] = useState("");
   const [roomId, setRoomId] = useState("");
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = (e) => {
+    if (e) e.preventDefault();
     if (!email || !roomId) {
       alert("Please fill in both email and room code.");
       return;
@@ -23,7 +24,8 @@ const Homepage = () => {
 
   return (
     <div className="homepage-container">
-      <div className="input-container">
+      <form onSubmit={handleJoinRoom} className="input-container">
+        <h1 style={{ color: "#fff", marginBottom: "20px" }}>WebRTC Video Call</h1>
         <input
           type="email"
           placeholder="Enter your email here"
@@ -37,12 +39,12 @@ const Homepage = () => {
           onChange={(e) => setRoomId(e.target.value)}
         />
         <button
-          onClick={handleJoinRoom}
+          type="submit"
           disabled={!email || !roomId}
         >
           Enter Room
         </button>
-      </div>
+      </form>
     </div>
   );
 };

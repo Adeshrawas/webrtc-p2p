@@ -6,6 +6,10 @@ const bodyParser = require("body-parser");
 const app = express();
 app.use(bodyParser.json());
 
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", message: "Signaling server is running" });
+});
+
 const httpServer = http.createServer(app);
 const io = new Server(httpServer, {
   cors: {

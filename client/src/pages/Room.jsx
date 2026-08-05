@@ -16,9 +16,12 @@ const RoomPage = () => {
   } = usePeer();
 
   const [myStream, setMyStream] = useState(null);
+  const [remoteEmailId, setRemoteEmailId] = useState(null);
+  const [micOn, setMicOn] = useState(true);
+  const [camOn, setCamOn] = useState(true);
+
   const myVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
-  const [remoteEmailId, setRemoteEmailId] = useState(null);
 
   // Get user's camera & mic
   const getUserMediaStream = useCallback(async () => {
@@ -28,21 +31,38 @@ const RoomPage = () => {
         video: true,
       });
       setMyStream(stream);
-      if (myVideoRef.current) {
-        myVideoRef.current.srcObject = stream;
-      }
+      if (myVideoRef.current) myVideoRef.current.srcObject = stream;
       sendStream(stream);
     } catch (err) {
       console.error("❌ Failed to get user media:", err);
     }
   }, [sendStream]);
 
+  // Toggle mic
+  const toggleMic = () => {
+    if (!myStream) return;
+    myStream.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
+    setMicOn((v) => !v);
+  };
+
+  // Toggle camera
+  const toggleCam = () => {
+    if (!myStream) return;
+    myStream.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
+    setCamOn((v) => !v);
+  };
+
+  // Leave room
+  const handleLeave = () => {
+    myStream?.getTracks().forEach((t) => t.stop());
+    navigate("/");
+  };
+
   // When someone joins your room, send offer
   const handleNewUserJoined = useCallback(
     async ({ emailId }) => {
       console.log("👤 New user joined:", emailId);
       setRemoteEmailId(emailId);
-
       const offer = await createOffer();
       socket.emit("call-user", { emailId, offer });
     },
@@ -54,7 +74,6 @@ const RoomPage = () => {
     async ({ from, offer }) => {
       console.log("📞 Incoming offer from:", from);
       setRemoteEmailId(from);
-
       const answer = await createAnswer(offer);
       socket.emit("call-accepted", { emailId: from, ans: answer });
     },
@@ -82,7 +101,6 @@ const RoomPage = () => {
     socket.on("user-joined", handleNewUserJoined);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
-
     return () => {
       socket.off("user-joined", handleNewUserJoined);
       socket.off("incoming-call", handleIncomingCall);
@@ -95,71 +113,86 @@ const RoomPage = () => {
     getUserMediaStream();
   }, [getUserMediaStream]);
 
-  // Re-send offer if renegotiation is triggered
+  // Renegotiation
   useEffect(() => {
     const handleNegotiation = async () => {
       try {
         const offer = await createOffer();
-        if (remoteEmailId) {
-          socket.emit("call-user", { emailId: remoteEmailId, offer });
-        }
+        if (remoteEmailId) socket.emit("call-user", { emailId: remoteEmailId, offer });
       } catch (err) {
         console.error("❌ Negotiation failed:", err);
       }
     };
-
     peer.addEventListener("negotiationneeded", handleNegotiation);
-    return () => {
-      peer.removeEventListener("negotiationneeded", handleNegotiation);
-    };
+    return () => peer.removeEventListener("negotiationneeded", handleNegotiation);
   }, [peer, remoteEmailId, createOffer, socket]);
 
   return (
     <div className="room-page-container">
-      <h1>Room Page</h1>
-      {remoteEmailId ? (
-        <h3 style={{ color: "#4caf50" }}>Connected to: {remoteEmailId}</h3>
-      ) : (
-        <h3 style={{ color: "#ff9800" }}>Waiting for someone to join...</h3>
-      )}
-
-      <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
-        <div>
-          <h4>My Video</h4>
-          <video
-            ref={myVideoRef}
-            autoPlay
-            muted
-            playsInline
-            style={{ width: "300px", borderRadius: "12px" }}
-          />
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <div className="room-header glass-card">
+        <div className="room-brand">
+          <span>📹</span> WebRTC Call
+          <div className="room-brand-dot" />
         </div>
-        <div>
-          <h4>Remote Video</h4>
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            style={{ width: "300px", borderRadius: "12px" }}
-          />
+
+        {remoteEmailId ? (
+          <span className="status-badge connected">Connected · {remoteEmailId}</span>
+        ) : (
+          <span className="status-badge waiting">Waiting for peer…</span>
+        )}
+      </div>
+
+      {/* ── Video grid ─────────────────────────────────────────────────── */}
+      <div className="video-grid">
+        {/* My video */}
+        <div className="video-card glass-card">
+          {myStream ? (
+            <>
+              <video ref={myVideoRef} autoPlay muted playsInline />
+              <span className="video-label">You</span>
+            </>
+          ) : (
+            <div className="video-placeholder">
+              <div className="avatar">👤</div>
+              <span>Starting camera…</span>
+            </div>
+          )}
+        </div>
+
+        {/* Remote video */}
+        <div className="video-card glass-card">
+          {remoteStream ? (
+            <>
+              <video ref={remoteVideoRef} autoPlay playsInline />
+              <span className="video-label">{remoteEmailId ?? "Remote"}</span>
+            </>
+          ) : (
+            <div className="video-placeholder">
+              <div className="avatar">🙋</div>
+              <span>{remoteEmailId ? "Connecting…" : "Waiting for peer"}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <button
-        onClick={() => navigate("/")}
-        style={{
-          marginTop: "20px",
-          padding: "10px 20px",
-          borderRadius: "8px",
-          backgroundColor: "#e53935",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: "bold",
-        }}
-      >
-        Leave Room
-      </button>
+      {/* ── Controls ───────────────────────────────────────────────────── */}
+      <div className="controls-bar glass-card">
+        <button className="ctrl-btn" onClick={toggleMic} title="Toggle mic">
+          {micOn ? "🎤" : "🔇"}
+          <span className="ctrl-label">{micOn ? "Mute" : "Unmute"}</span>
+        </button>
+
+        <button className="ctrl-btn" onClick={toggleCam} title="Toggle camera">
+          {camOn ? "📷" : "🚫"}
+          <span className="ctrl-label">{camOn ? "Camera" : "Off"}</span>
+        </button>
+
+        <button className="ctrl-btn danger" onClick={handleLeave} title="Leave room">
+          📵
+          <span className="ctrl-label">Leave</span>
+        </button>
+      </div>
     </div>
   );
 };

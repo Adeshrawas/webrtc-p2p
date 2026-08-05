@@ -11,39 +11,56 @@ const Homepage = () => {
 
   const handleJoinRoom = (e) => {
     if (e) e.preventDefault();
-    if (!email || !roomId) {
-      alert("Please fill in both email and room code.");
-      return;
-    }
-
+    if (!email || !roomId) return;
     socket.emit("join-room", { emailId: email, roomId });
-
-    // ✅ Navigate directly to room
     navigate(`/room/${roomId}`);
   };
 
   return (
     <div className="homepage-container">
-      <form onSubmit={handleJoinRoom} className="input-container">
-        <h1 style={{ color: "#fff", marginBottom: "20px" }}>WebRTC Video Call</h1>
-        <input
-          type="email"
-          placeholder="Enter your email here"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="Enter Room Code"
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-        />
+      <form onSubmit={handleJoinRoom} className="input-container glass-card">
+        {/* Brand icon */}
+        <div className="home-logo">📹</div>
+
+        <h1 className="home-title">WebRTC Video Call</h1>
+        <p className="home-subtitle">Connect instantly — no downloads, no sign-ups.</p>
+
+        {/* Email field */}
+        <div className="input-group">
+          <label htmlFor="email-input">Your Email</label>
+          <span className="input-icon">✉️</span>
+          <input
+            id="email-input"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+        </div>
+
+        {/* Room code field */}
+        <div className="input-group">
+          <label htmlFor="room-input">Room Code</label>
+          <span className="input-icon">🔑</span>
+          <input
+            id="room-input"
+            type="text"
+            placeholder="Enter room code"
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+          />
+        </div>
+
         <button
           type="submit"
+          className="btn-join"
           disabled={!email || !roomId}
         >
-          Enter Room
+          Join Room →
         </button>
+
+        <div className="home-divider">end-to-end encrypted</div>
       </form>
     </div>
   );
